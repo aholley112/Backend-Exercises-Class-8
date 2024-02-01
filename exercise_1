@@ -1,0 +1,82 @@
+rails generate model User name:string email:string
+
+class User < ApplicationRecord
+  before_save { self.email = email.downcase }
+  validates :name, presence: true, length: { minimum: 3, maximum: 50 }
+  validates :email, presence: true, uniqueness: true, length: { minimum: 5, maximum: 255 }, format: { with: URI::MailTo::EMAIL_REGEXP }
+end
+
+rails db:migrate
+
+rails c
+
+user = User.create(name: "Amanda", email: "amanda@example.com")
+user.update(name: "Adalynn")
+user.destroy
+User.all
+User.find(1)
+
+rails generate migration AddAgeToUsers age:integer
+rails db:migrate
+
+validates :age, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 18, less_than_or_equal_to: 100 }
+
+rails generate migration RenameNameToFullNameInUsers
+
+class RenameNameToFullNameInUsers < ActiveRecord::Migration[7.1]
+  def change
+    rename_column :users, :name, :full_name
+  end
+end
+
+rails db:migrate
+
+rails generate controller Users
+
+class UsersController < ApplicationController
+  def index
+    users = User.all
+    render json: users
+  end
+  
+  def show
+    user = User.find(params[:id])
+    render json: user
+  end
+
+  def create
+    user = User.new(user_params)
+    if user.save
+      render json: user, status: :created
+    else
+      render json: user.errors, status: :unprocessable_entity
+    end
+  end
+  
+  def update
+    user = User.find(params[:id])
+    if user.update(user_params)
+      render json: user
+    else
+      render json: user.errors, status: :unprocessable_entity
+    end
+  end
+
+  def destroy
+    user = User.find(params[:id])
+    user.destroy
+    head :no_content
+  end
+
+    private
+  
+    def user_params
+      params.require(:user).permit(:full_name, :email, :age) 
+    end
+  end
+
+Rails.application.routes.draw do
+  resources :users
+end
+
+# When first adding a user in Postman I got a 500 error because I had not changed it to full_name in my user.rb file. Obviously fixing that resolved the issue.
