@@ -1,0 +1,25 @@
+rails new exercise_2_blogging_api --api
+
+rails generate model Post title:string content:text
+rails generate model Tag name:string
+rails generate model Tagging taggable:references{polymorphic} tag:references
+
+class Post < ApplicationRecord
+  has_many :taggings, as: :taggable
+  has_many :tags, through: :taggings
+end
+
+class Tag < ApplicationRecord
+  has_many :taggings
+  has_many :taggables, through: :taggings
+end
+
+class Tagging < ApplicationRecord
+  belongs_to :taggable, polymorphic: true
+  belongs_to :tag
+end
+
+rails db:migrate
+
+rails c
+
