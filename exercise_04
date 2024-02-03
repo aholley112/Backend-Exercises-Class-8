@@ -1,0 +1,42 @@
+rails new exercise_4_library_api --api
+cd exercise_4_library_api
+
+rails generate model User name:string email:string
+
+class User < ApplicationRecord
+  has_many :posts, dependent: :destroy
+end
+
+rails db:migrate
+
+rails generate model Post title:string content:text user:references
+
+class Post < ApplicationRecord
+  belongs_to :user
+end
+
+rails db:migrate
+
+rails generate controller Users index
+rails generate controller Posts
+
+Rails.application.routes.draw do
+  resources :users do
+    resources :posts, only: [:index] 
+  end
+end
+
+class PostsController < ApplicationController
+  def index
+    if params[:user_id]
+      @user = User.find(params[:user_id])
+      @posts = @user.posts
+    else
+      @posts = Post.all
+    end
+
+    render json: @posts
+  end
+end
+
+rails s
