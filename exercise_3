@@ -1,0 +1,37 @@
+rails new exercise_3_doctor_patient_api --api
+cd exercise_3_doctor_patient_api
+
+rails generate model Doctor name:string specialty:string
+
+class Doctor < ApplicationRecord
+  has_many :appointments
+  has_many :patients, through: :appointments
+end
+
+rails db:migrate
+
+rails generate model Patient name:string age:integer
+
+class Patient < ApplicationRecord
+  has_many :appointments
+  has_many :doctors, through: :appointments
+end
+
+rails db:migrate
+
+rails generate model Appointment doctor:references patient:references appointment_date:datetime
+
+class Appointment < ApplicationRecord
+  belongs_to :doctor
+  belongs_to :patient
+end
+
+rails db:migrate
+
+rails c
+
+doctor1 = Doctor.create(name: "Dr. Smith", specialty: "Cardiology")
+
+patient1 = Patient.create(name: "Amanda Feely", age: 35)
+
+appointment1 = Appointment.create(doctor: doctor1, patient: patient1, appointment_date: DateTime.now)
